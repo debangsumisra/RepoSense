@@ -43,10 +43,7 @@ getTopRankedRepositories() {
     public RepositoryEntity saveRepository(RepositoryEntity repositoryEntity) {
         return repositoryRepo.save(repositoryEntity);
     }
-@Cacheable(
-        value = "repositories",
-        key = "#keyword"
-)
+
 public List<RepositoryEntity>
 searchRepositories(String keyword) {
 
