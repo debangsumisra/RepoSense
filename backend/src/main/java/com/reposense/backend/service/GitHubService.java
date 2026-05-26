@@ -24,45 +24,67 @@ public class GitHubService {
         this.repositoryRepo = repositoryRepo;
     }
 
-    public List<RepositoryEntity> searchRepositories(String query) {
+  
 
-        String url =
-                "https://api.github.com/search/repositories?q=" + query;
+   public List<RepositoryEntity> searchRepositories(String query) {
 
-        GitHubSearchResponse response =
-                restTemplate.getForObject(
-                        url,
-                        GitHubSearchResponse.class
-                );
+    String url =
+            "https://api.github.com/search/repositories?q=" + query;
 
-        List<RepositoryEntity> savedRepositories =
-                new ArrayList<>();
+    GitHubSearchResponse response =
+            restTemplate.getForObject(
+                    url,
+                    GitHubSearchResponse.class
+            );
 
-        if (response != null && response.getItems() != null) {
+    List<RepositoryEntity> repositories =
+            new ArrayList<>();
 
-            for (GitHubItemDTO item : response.getItems()) {
+    if (response != null && response.getItems() != null) {
 
-               RepositoryEntity repository =
-        RepositoryEntity.builder()
-                .repoName(item.getName())
-                .owner(item.getOwner().getLogin())
-                .description(item.getDescription())
-                .stars(item.getStars())
-                .language(item.getLanguage())
-                .score(calculateScore(
-                        item.getStars(),
-                        item.getLanguage()
-                ))
-                .build();
+        for (GitHubItemDTO item : response.getItems()) {
+
+            boolean exists =
+                    repositoryRepo.existsByRepoNameAndOwner(
+                            item.getName(),
+                            item.getOwner().getLogin()
+                    );
+
+            RepositoryEntity repository;
+
+            if (!exists) {
+
+                repository =
+                        RepositoryEntity.builder()
+                                .repoName(item.getName())
+                                .owner(item.getOwner().getLogin())
+                                .description(item.getDescription())
+                                .stars(item.getStars())
+                                .language(item.getLanguage())
+                                .score(calculateScore(
+                                        item.getStars(),
+                                        item.getLanguage()
+                                ))
+                                .build();
 
                 repositoryRepo.save(repository);
 
-                savedRepositories.add(repository);
-            }
-        }
+            } else {
 
-        return savedRepositories;
+                repository =
+                        repositoryRepo
+                                .findByRepoNameAndOwner(
+                                        item.getName(),
+                                        item.getOwner().getLogin()
+                                );
+            }
+
+            repositories.add(repository);
+        }
     }
+
+    return repositories;
+}
     private Double calculateScore(
         Integer stars,
         String language) {

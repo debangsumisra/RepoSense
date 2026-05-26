@@ -13,8 +13,14 @@ public interface RepositoryRepo
     List<RepositoryEntity>
     findByRepoNameContainingIgnoreCase(String keyword);
 
-    boolean existsByRepoName(String repoName);
-
+ boolean existsByRepoNameAndOwner(
+        String repoName,
+        String owner
+);
+RepositoryEntity findByRepoNameAndOwner(
+        String repoName,
+        String owner
+);
     List<RepositoryEntity>
     findTop10ByOrderByStarsDesc();
 
